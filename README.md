@@ -1,0 +1,4 @@
+- `uv run uvicorn main:app` : Cette commande lance l’application FastAPI avec Uvicorn en utilisant le gestionnaire de paquets uv.
+- `docker build --tag uvproduction .` : Cette commande construit une image Docker à partir du Dockerfile du répertoire courant et lui donne le tag `uvproduction`.
+- `docker run -p 8000:8000 --name uvprodcontainer uvproduction` : Cette commande crée et démarre un conteneur Docker appelé `uvprodcontainer`, en associant le port 8000 du conteneur au port 8000 de la machine hôte, à partir de l’image `uvproduction`.
+- `docker exec -it uvprodcontainer bash` : Cette commande permet d’ouvrir un terminal interactif Bash à l’intérieur du conteneur Docker `uvprodcontainer`.
