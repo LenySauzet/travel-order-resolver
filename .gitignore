@@ -70,3 +70,6 @@ logs/
 *.temp
 tmp/
 temp/
+
+# # databases
+*.db

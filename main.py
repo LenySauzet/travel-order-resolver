@@ -1,23 +1,11 @@
+import streamlit as st
 """
-Point d'entrée principal du projet Travel Order Resolver.
-
-Pour lancer l'API FastAPI:
-    uv run uvicorn api.main:app --reload
-
-Pour lancer le frontend Streamlit:
-    uv run streamlit run frontend/app.py
+Main entry point for the Travel Order Resolver application.
 """
-
 
 def main():
-    print("Travel Order Resolver")
-    print("=" * 40)
-    print()
-    print("Pour lancer l'API FastAPI:")
-    print("  uv run uvicorn api.main:app --reload")
-    print()
-    print("Pour lancer le frontend Streamlit:")
-    print("  uv run streamlit run frontend/app.py")
+    """Entry point for the CLI."""
+    print("Use 'uv run poe api', 'uv run poe front', or 'uv run poe dev'")
 
 
 if __name__ == "__main__":
