@@ -1,7 +1,24 @@
-from fastapi import FastAPI
+"""
+Point d'entrée principal du projet Travel Order Resolver.
 
-app = FastAPI(swagger_ui_parameters={})
+Pour lancer l'API FastAPI:
+    uv run uvicorn api.main:app --reload
 
-@app.get("/")
-def read_root():
-    return 'Hello World'
+Pour lancer le frontend Streamlit:
+    uv run streamlit run frontend/app.py
+"""
+
+
+def main():
+    print("Travel Order Resolver")
+    print("=" * 40)
+    print()
+    print("Pour lancer l'API FastAPI:")
+    print("  uv run uvicorn api.main:app --reload")
+    print()
+    print("Pour lancer le frontend Streamlit:")
+    print("  uv run streamlit run frontend/app.py")
+
+
+if __name__ == "__main__":
+    main()
