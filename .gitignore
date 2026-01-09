@@ -73,3 +73,6 @@ temp/
 
 # # databases
 *.db
+
+# models
+base/models/
