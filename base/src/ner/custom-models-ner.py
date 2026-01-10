@@ -4,15 +4,10 @@ import spacy
 from spacy.util import minibatch
 from spacy.training.example import Example
 
-# train_data = [
-#     ("What is the price of 10 bananas?", {"entities": [(21, 23, "QUANTITY"), (24, 31, "PRODUCT")]}),
-# ]
-
-# use the train_data.json file
-with open('base/src/ner/train_data.json', 'r') as f:
+with open('base/data/processed/travel-order-dataset.json', 'r') as f:
     train_data = json.load(f)
 
-nlp = spacy.load('en_core_web_md')
+nlp = spacy.load('fr_core_news_md')
 
 if 'ner' not in nlp.pipe_names:
     ner = nlp.add_pipe('ner')
@@ -42,15 +37,20 @@ with nlp.disable_pipes(*other_pipes):
             nlp.update(exemples, drop=0.5, losses=losses)
         print(f'Epoch: {epoch}, Losses: {losses}')
 
-nlp.to_disk('base/models/ner/custom-ner-model')
+nlp.to_disk('base/models/travel-order-ner-model')
 
-trained_nlp = spacy.load('base/models/ner/custom-ner-model')
+trained_nlp = spacy.load('base/models/travel-order-ner-model')
 
 test_texts = [
-    'How much money for 16 pineapples?',
-    'Can you tell me the price of 7 strawberries?',
-    'Can I get the cost of 14 oranges?',
-    'Price check: 14 tomatoes.',
+    'Je voudrais un billet Paris Toulouse demain à 14h.',
+    'Je souhaite me rendre à Lyon depuis Paris ce soir.',
+    'A quelle heure y a-t-il des trains vers Toulouse mardi à 8h30 en partance de Paris ?',
+    'Comment me rendre à Toulouse depuis Paris lundi prochain ?',
+    'Je veux aller à Toulouse en partant de Paris ce week-end.',
+    'Trajet de Paris vers Toulouse en fin de journée.',
+    'Je cherche un train allant de Paris à Toulouse après-demain.',
+    'billet de train Paris Toulouse demain',
+    'Quels sont les horaires pour Toulouse au départ de Paris le 15 mars ?',
 ]
 
 for text in test_texts:
