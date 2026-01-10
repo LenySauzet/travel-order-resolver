@@ -1,0 +1,222 @@
+[
+    [
+        "Réserver un billet entre Fay et Coatascorn pour demain",
+        {
+            "entities": [
+                [
+                    25,
+                    28,
+                    "DEPARTURE"
+                ],
+                [
+                    32,
+                    42,
+                    "DESTINATION"
+                ],
+                [
+                    48,
+                    54,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Je voudrais un billet Taconnay Trémont pour en soirée.",
+        {
+            "entities": [
+                [
+                    22,
+                    30,
+                    "DEPARTURE"
+                ],
+                [
+                    31,
+                    38,
+                    "DESTINATION"
+                ],
+                [
+                    44,
+                    53,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Comment me rendre à Tarabel depuis Aoste entre 13h et 14h ?",
+        {
+            "entities": [
+                [
+                    35,
+                    40,
+                    "DEPARTURE"
+                ],
+                [
+                    20,
+                    27,
+                    "DESTINATION"
+                ],
+                [
+                    41,
+                    57,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "A quelle heure y a-t-il des trains vers Ergnies après le déjeuner en partance de Dampierre-sur-Linotte ?",
+        {
+            "entities": [
+                [
+                    81,
+                    102,
+                    "DEPARTURE"
+                ],
+                [
+                    40,
+                    47,
+                    "DESTINATION"
+                ],
+                [
+                    48,
+                    65,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Je cherche à voyager de Saint-Faust à Vars ce week-end.",
+        {
+            "entities": [
+                [
+                    24,
+                    35,
+                    "DEPARTURE"
+                ],
+                [
+                    38,
+                    42,
+                    "DESTINATION"
+                ],
+                [
+                    43,
+                    54,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Quels itinéraires pour aller à Sailly-lez-Cambrai à partir de La Broque samedi à 15h ?",
+        {
+            "entities": [
+                [
+                    62,
+                    71,
+                    "DEPARTURE"
+                ],
+                [
+                    31,
+                    49,
+                    "DESTINATION"
+                ],
+                [
+                    72,
+                    84,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "ce week-end, existe-t-il un trajet de Hagetaubin à Montenois ?",
+        {
+            "entities": [
+                [
+                    38,
+                    48,
+                    "DEPARTURE"
+                ],
+                [
+                    51,
+                    60,
+                    "DESTINATION"
+                ],
+                [
+                    0,
+                    11,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Réserver un billet entre Poucharramet et Bouhey pour pour ce jeudi",
+        {
+            "entities": [
+                [
+                    25,
+                    37,
+                    "DEPARTURE"
+                ],
+                [
+                    41,
+                    47,
+                    "DESTINATION"
+                ],
+                [
+                    53,
+                    66,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "Aller simple Ableiges - Huisseau-en-Beauce ce soir",
+        {
+            "entities": [
+                [
+                    13,
+                    21,
+                    "DEPARTURE"
+                ],
+                [
+                    24,
+                    42,
+                    "DESTINATION"
+                ],
+                [
+                    43,
+                    50,
+                    "TIME"
+                ]
+            ]
+        }
+    ],
+    [
+        "billet de train Mareuil-lès-Meaux Montoussin dès que possible",
+        {
+            "entities": [
+                [
+                    16,
+                    33,
+                    "DEPARTURE"
+                ],
+                [
+                    34,
+                    44,
+                    "DESTINATION"
+                ],
+                [
+                    45,
+                    61,
+                    "TIME"
+                ]
+            ]
+        }
+    ]
+]

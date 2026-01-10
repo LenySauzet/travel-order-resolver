@@ -107,3 +107,8 @@ docker compose logs -f
 ```bash
 docker exec -it travel-resolver-api bash
 ```
+
+## 📚 Spacy
+
+### Download the French model
+`uv run python -m spacy download fr_core_news_md` to download the French model
