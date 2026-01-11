@@ -23,6 +23,10 @@ dependencies = [
     "matplotlib>=3.10.8",
     "faster-whisper>=1.2.1",
     "nltk>=3.9.2",
+    "python-multipart>=0.0.21",
+    "st-annotated-text>=4.0.2",
+    "streamlit-vertical-slider>=2.5.5",
+    "streamlit-toggle-switch>=1.0.2",
 ]
 
 [tool.pytest.ini_options]

@@ -588,6 +588,12 @@ wheels = [
 ]
 
 [[package]]
+name = "htbuilder"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/88/0f48d1125168e9eea33879ea820000702533d103f1123d27ca69839a0db4/htbuilder-0.9.0.tar.gz", hash = "sha256:58c0bc5502c1a46b42ae9e074c43ec0f6fdc24ed334936cb17e1ed5a8938aee2", size = 10591, upload-time = "2025-01-09T07:00:26.189Z" }
+
+[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1423,6 +1429,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-multipart"
+version = "0.0.21"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/96/804520d0850c7db98e5ccb70282e29208723f0964e88ffd9d0da2f52ea09/python_multipart-0.0.21.tar.gz", hash = "sha256:7137ebd4d3bbf70ea1622998f902b97a29434a9e8dc40eb203bbcf7c2a2cba92", size = 37196, upload-time = "2025-12-17T09:24:22.446Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/76/03af049af4dcee5d27442f71b6924f01f3efb5d2bd34f23fcd563f2cc5f5/python_multipart-0.0.21-py3-none-any.whl", hash = "sha256:cf7a6713e01c87aa35387f4774e812c4361150938d20d232800f75ffcf266090", size = 24541, upload-time = "2025-12-17T09:24:21.153Z" },
+]
+
+[[package]]
 name = "pytz"
 version = "2025.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1886,6 +1901,18 @@ wheels = [
 ]
 
 [[package]]
+name = "st-annotated-text"
+version = "4.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "htbuilder" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4d/76/c0f64a56b779bfb5c87437687a9970d12dad37b5aea2541823d0c5010818/st_annotated_text-4.0.2.tar.gz", hash = "sha256:b0134dcf734697cc3dbdb11862c4174071e7fb6f365af55a37c710d357fd88a5", size = 7915, upload-time = "2025-01-23T15:09:02.88Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d9/70/f29d4359ddfd1a0afa00065e4dac32bd4931f589185f5f0f499db9aee4fe/st_annotated_text-4.0.2-py3-none-any.whl", hash = "sha256:712c45821f020eccafad3a58c10b9d2d51d449f4db999a06308ecf39a753a4df", size = 9084, upload-time = "2025-01-23T15:09:00.863Z" },
+]
+
+[[package]]
 name = "starlette"
 version = "0.50.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1924,6 +1951,30 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/43/20/434aaceccc6e1912671d869926103051330437adba72d538d787a07727ef/streamlit-1.52.2.tar.gz", hash = "sha256:64a4dda8bc5cdd37bfd490e93bb53da35aaef946fcfc283a7980dacdf165108b", size = 8584178, upload-time = "2025-12-17T17:07:59.642Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c0/95/6b7873f0267973ebd55ba9cd33a690b35a116f2779901ef6185a0e21864d/streamlit-1.52.2-py3-none-any.whl", hash = "sha256:a16bb4fbc9781e173ce9dfbd8ffb189c174f148f9ca4fb8fa56423e84e193fc8", size = 9025937, upload-time = "2025-12-17T17:07:57.67Z" },
+]
+
+[[package]]
+name = "streamlit-toggle-switch"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/ce/9b8b93bc87223b0680fb73ea3c877d4f02390da12a6a1a561b90ec438d0d/streamlit_toggle_switch-1.0.2.tar.gz", hash = "sha256:991b103cd3448b0f6507f8051777b996a17b4630956d5b6fa13344175b20e572", size = 627850, upload-time = "2022-10-25T22:57:42.206Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/bc/f3ffd4143379756c494b8cb5faf1fffae48b722fe7b05794068d05bec965/streamlit_toggle_switch-1.0.2-py3-none-any.whl", hash = "sha256:0081212d80d178bda337acf2432425e2016d757f57834b18645d4c5b928d4c0f", size = 635443, upload-time = "2022-10-25T22:57:40.055Z" },
+]
+
+[[package]]
+name = "streamlit-vertical-slider"
+version = "2.5.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/29/b6/c4596692276174e01899e4da3bdcef101451bc45f1a738aad54a0e60bcfe/streamlit_vertical_slider-2.5.5.tar.gz", hash = "sha256:d6854cf81a606f5c021df2037d2c49036df2d03ce5082a5227a2acca8322ca74", size = 635192, upload-time = "2023-12-22T03:04:41.177Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4e/3f/f16875fa650cc6f6c1bc19ef9ccae5a1a7f434ec08747181743b48c31830/streamlit_vertical_slider-2.5.5-py3-none-any.whl", hash = "sha256:8182e861444fcd69e05c05e7109a636d459560c249f1addf78b58e525a719cb6", size = 1769408, upload-time = "2023-12-22T03:04:38.527Z" },
 ]
 
 [[package]]
@@ -2078,10 +2129,14 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "python-multipart" },
     { name = "scikit-learn" },
     { name = "spacy" },
     { name = "sqlalchemy" },
+    { name = "st-annotated-text" },
     { name = "streamlit" },
+    { name = "streamlit-toggle-switch" },
+    { name = "streamlit-vertical-slider" },
     { name = "uvicorn" },
 ]
 
@@ -2100,10 +2155,14 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.12.0" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=1.3.0" },
+    { name = "python-multipart", specifier = ">=0.0.21" },
     { name = "scikit-learn", specifier = ">=1.6.0" },
     { name = "spacy", specifier = ">=3.8.11" },
     { name = "sqlalchemy", specifier = ">=2.0.45" },
+    { name = "st-annotated-text", specifier = ">=4.0.2" },
     { name = "streamlit", specifier = ">=1.52.2" },
+    { name = "streamlit-toggle-switch", specifier = ">=1.0.2" },
+    { name = "streamlit-vertical-slider", specifier = ">=2.5.5" },
     { name = "uvicorn", specifier = ">=0.40.0" },
 ]
 

@@ -1,11 +1,9 @@
 import random
 import json
 import pandas as pd
-from utils import get_offsets
-from preprocessing import preprocess_text
+from string import Formatter
 
-CITIES = pd.read_csv('base/data/raw/communes-france-2025.csv', usecols=['nom_standard'])['nom_standard'].tolist()
-STATIONS = pd.read_csv('base/data/raw/liste-des-gares.csv', sep=';')['LIBELLE'].tolist()
+ENTRIES = pd.read_csv('base/data/processed/stations.csv', usecols=['station'])['station'].tolist()
 
 TIMES = [
     "demain", "ce soir", "lundi prochain", "à 14h", "vers 10 heures",
@@ -43,26 +41,35 @@ TEMPLATES = [
     "Quels itinéraires pour aller à {destination} à partir de {departure} {time} ?"
 ]
 
+LABELS = {"departure": "DEPARTURE", "destination": "DESTINATION", "time": "TIME"}
+
 def generate_example():
     template = random.choice(TEMPLATES)
-     
-    departure, destination = random.sample(CITIES + STATIONS, 2)
+    departure, destination = random.sample(ENTRIES, 2)
     time = random.choice(TIMES)
 
-    text = template.format(departure=departure, destination=destination, time=time)
+    values = {"departure": departure, "destination": destination, "time": time}
 
-    entities = [
-        get_offsets(text, departure, "DEPARTURE"),
-        get_offsets(text, destination, "DESTINATION"),
-        get_offsets(text, time, "TIME")
-    ]
+    entities = []
+    parts = []
+    pos = 0
 
-    return (text, {"entities": entities})
+    for literal, field_name, _, _ in Formatter().parse(template):
+        parts.append(literal)
+        pos += len(literal)
+
+        if field_name:
+            value = values[field_name]
+            entities.append((pos, pos + len(value), LABELS[field_name]))
+            parts.append(value)
+            pos += len(value)
+
+    return ("".join(parts), {"entities": entities})
 
 def generate_dataset(n=500):
     return [generate_example() for _ in range(n)]
 
-dataset = generate_dataset(10)
+dataset = generate_dataset(500)
 
 with open('base/data/processed/travel-order-dataset.json', 'w', encoding='utf-8') as f:
     json.dump(dataset, f, ensure_ascii=False, indent=4)

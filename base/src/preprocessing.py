@@ -5,11 +5,15 @@ This file contains preprocessing utilities for text data.
 import spacy
 import re
 from nltk.corpus import stopwords
+import unicodedata
 
 nlp = spacy.load('fr_core_news_md')
 french_stopwords = set(stopwords.words('french'))
 
 def remove_punctuation(text: str) -> str:
+    """
+    Removes punctuation from a string.
+    """
     cleaned_text = re.sub(r'[^A-Za-z0-9\s]', ' ', text)
     cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
     return cleaned_text.strip()
@@ -28,13 +32,24 @@ def remove_stopwords(text: str) -> str:
     tokens = return_tokens(text)
     return " ".join([token for token in tokens if token not in french_stopwords])
 
+def remove_accents(text: str) -> str:
+    """
+    Removes accents from a string.
+    """
+    normalized_text = unicodedata.normalize('NFD', text)
+    text_without_accents = ''.join(
+        char for char in normalized_text
+        if not unicodedata.combining(char)
+    )
+    return text_without_accents
+
 def preprocess_text(text: str) -> str:
     """
     text preprocessing pipeline
     """
+    text = remove_accents(text)
     text = remove_punctuation(text)
     text = remove_stopwords(text)
     text = lemmatize(text)
     text = text.lower()
     return text
-
