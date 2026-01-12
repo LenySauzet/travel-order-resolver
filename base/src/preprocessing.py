@@ -43,9 +43,19 @@ def remove_accents(text: str) -> str:
     )
     return text_without_accents
 
+def normalize_text(text: str) -> str:
+    """
+    Light text normalization: lowercase, remove accents and punctuation.
+    Use this for NER input and dataset generation.
+    """
+    text = text.lower()
+    text = remove_accents(text)
+    text = remove_punctuation(text)
+    return text
+
 def preprocess_text(text: str) -> str:
     """
-    text preprocessing pipeline
+    Full text preprocessing pipeline (includes stopwords removal and lemmatization).
     """
     text = remove_accents(text)
     text = remove_punctuation(text)

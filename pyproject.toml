@@ -27,6 +27,15 @@ dependencies = [
     "st-annotated-text>=4.0.2",
     "streamlit-vertical-slider>=2.5.5",
     "streamlit-toggle-switch>=1.0.2",
+    "dateparser>=1.2.2",
+    "thefuzz>=0.22.1",
+    "python-levenshtein>=0.27.3",
+    "streamlit-geolocation>=0.0.10",
+    "streamlit-js-eval>=1.0.0",
+    "folium>=0.18.0",
+    "streamlit-folium>=0.23.0",
+    "googlemaps>=4.10.0",
+    "polyline>=2.0.2",
 ]
 
 [tool.pytest.ini_options]

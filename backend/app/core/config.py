@@ -4,6 +4,7 @@ from pathlib import Path
 
 load_dotenv()
 
+
 class Config(BaseSettings):
     app_name: str = "Travel Order Resolver API"
     app_description: str = "API for resolving travel orders"
@@ -12,6 +13,10 @@ class Config(BaseSettings):
     db_user: str = ""
     db_password: str = ""
     db_name: str = "test.db"
+    navitia_api_key: str = ""
+    navitia_base_url: str = "https://api.navitia.io/v1"
+    navitia_coverage: str = "sncf"
+    google_maps_api_key: str = ""
 
     @property
     def db_url(self):
