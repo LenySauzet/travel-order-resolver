@@ -1,1 +1,23 @@
 # https://docs.streamlit.io/develop/api-reference/configuration/config.toml
+
+[client]
+showSidebarNavigation = false
+
+[theme]
+base = "dark"
+primaryColor = "#437991"
+backgroundColor = "#0c141d"
+secondaryBackgroundColor = "#232b34"
+textColor = "#ffffff"
+redColor = "#DB735E"
+orangeColor = "#f2be69"
+yellowColor = "#f7e05c"
+blueColor = "#b7b6ff"
+greenColor = "#6ccb70"
+violetColor = "#e39dfd"
+linkColor = "#90eafd"
+codeBackgroundColor = "#232b34"
+codeTextColor = "#8c949a"
+linkUnderline = false
+baseRadius = "1rem"
+buttonRadius = "2rem"

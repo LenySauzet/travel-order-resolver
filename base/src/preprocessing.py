@@ -1,4 +1,65 @@
 """
-This file is a template for potential preprocessing utilities.
-You can implement preprocessing logic here if needed.
+This file contains preprocessing utilities for text data.
 """
+
+import spacy
+import re
+from nltk.corpus import stopwords
+import unicodedata
+
+nlp = spacy.load('fr_core_news_md')
+french_stopwords = set(stopwords.words('french'))
+
+def remove_punctuation(text: str) -> str:
+    """
+    Removes punctuation from a string.
+    """
+    cleaned_text = re.sub(r'[^A-Za-z0-9\s]', ' ', text)
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+    return cleaned_text.strip()
+
+def lemmatize(text: str) -> str:
+    """Lemmatization with spaCy - reduces words to their base form (lemma)"""
+    doc = nlp(text)
+    lemmatized_words = [token.lemma_ for token in doc]
+    return " ".join(lemmatized_words)
+
+def return_tokens(text: str) -> list[str]:
+    doc = nlp(text)
+    return [token.text for token in doc]
+
+def remove_stopwords(text: str) -> str:
+    tokens = return_tokens(text)
+    return " ".join([token for token in tokens if token not in french_stopwords])
+
+def remove_accents(text: str) -> str:
+    """
+    Removes accents from a string.
+    """
+    normalized_text = unicodedata.normalize('NFD', text)
+    text_without_accents = ''.join(
+        char for char in normalized_text
+        if not unicodedata.combining(char)
+    )
+    return text_without_accents
+
+def normalize_text(text: str) -> str:
+    """
+    Light text normalization: lowercase, remove accents and punctuation.
+    Use this for NER input and dataset generation.
+    """
+    text = text.lower()
+    text = remove_accents(text)
+    text = remove_punctuation(text)
+    return text
+
+def preprocess_text(text: str) -> str:
+    """
+    Full text preprocessing pipeline (includes stopwords removal and lemmatization).
+    """
+    text = remove_accents(text)
+    text = remove_punctuation(text)
+    text = remove_stopwords(text)
+    text = lemmatize(text)
+    text = text.lower()
+    return text
