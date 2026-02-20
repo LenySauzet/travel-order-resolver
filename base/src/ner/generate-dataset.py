@@ -3,7 +3,7 @@ import json
 import pandas as pd
 from string import Formatter
 import sys
-sys.path.append('base/src')
+sys.path.insert(0, 'base/src')
 from preprocessing import normalize_text
 
 ENTRIES = pd.read_csv('base/data/processed/entries.csv', usecols=['entries'])['entries'].tolist()
@@ -21,7 +21,17 @@ TIMES = [
     ]
 ]
 
+# Synonym replacements applied to templates before entity injection
+SYNONYMS = {
+    "depuis": ["de", "au depart de", "en partant de", "a partir de"],
+    "vers": ["a", "pour", "direction", "destination"],
+    "train": ["TGV", "TER", "transport"],
+    "billet": ["ticket", "titre de transport"],
+    "trajet": ["voyage", "parcours", "itineraire"],
+}
+
 TEMPLATES = [
+    # --- Standard / formal ---
     "de {departure} vers {destination}",
     "{destination} de {departure}",
     "pour {destination}",
@@ -64,7 +74,6 @@ TEMPLATES = [
     "Mon trajet {departure} à {destination}",
     "Donne le trajet de {departure} a {destination} stp",
     "Le trajet de {departure} vers {destination} est dispo ?",
-    "Jveux aller de {departure} à {destination}",
     "Avec Luc on part de {departure} pour aller a {destination}",
     "On est à {departure}, on veut décale à {destination}",
     "Je pars de {departure}, je vais aller à {destination} avec un pull orange",
@@ -78,13 +87,120 @@ TEMPLATES = [
     "Je souhaite aller d'{departure} vers {destination}",
     "Puis-je partir de {departure} et arriver à {destination} ?",
     "Le trajet {departure} - {destination} est-il disponible ?",
+    "Je souhaite aller d {departure} vers {destination}",
+    "Puis je partir de {departure} et arriver a {destination} ?",
+    "Le trajet {departure} - {destination} est il disponible ?",
+    "Je vais a {destination} pour le boulot en partant de {departure}",
+    "Je suis situe a {departure} un train pour {destination} est il disponible ?",
+    "nous voulons aller a {destination} nous partons de {departure}",
+    
+
+    # --- Informal / SMS ---
+    "ya un train {departure} {destination} {time} ?",
+    "besoin daller a {destination} je suis a {departure} {time}",
+    "comment jfais pour aller a {destination} de {departure} {time}",
+    "faut que jaille a {destination} depuis {departure} {time}",
+    "jdois aller a {destination} jepars de {departure} {time}",
+    "un truc pour {destination} au depart de {departure} {time}",
+    "{departure} {destination} ca marche {time} ?",
+    "jvais a {destination} depuis {departure} {time}",
+    "jsuis a {departure} jveux aller a {destination} {time}",
+    "jveux aller de {departure} a {destination} {time}",
+    "on part de {departure} pour aller a {destination} {time}",
+    "on est a {departure} on veut decaler a {destination} {time}",
+    "train pour {destination} depuis {departure} {time} ?",
+    "Avec un pote on part de {departure} pour aller a {destination} {time}",
+    "je m echappe a {destination} il y a des billets depuis {departure} {time} ?",
+
+    # --- Questions / interrogative ---
+    "Peut on aller de {departure} vers {destination} {time} ?",
+    "Y a t il un train de {departure} a {destination} {time} ?",
+    "C est possible {departure} {destination} {time} ?",
+    "Comment faire pour aller de {departure} a {destination} {time} ?",
+    "Quel train prendre de {departure} pour {destination} {time} ?",
+    "On peut partir de {departure} et arriver a {destination} {time} ?",
+    "Il existe un trajet {departure} {destination} {time} ?",
+
+    # --- Reversed / varied word order ---
+    "{destination} svp je pars de {departure} {time}",
+    "Pour aller a {destination} je suis a {departure} {time}",
+    "Direction {destination} depart de {departure} {time}",
+    "Arrivee {destination} depart {departure} {time}",
+    "{destination} en partant de {departure} c est possible {time} ?",
+    "Vers {destination} au depart de {departure} {time}",
+    "partir a {destination} depuis {departure} {time}",
+    "Comment je me deplace a {destination} de {departure} {time} ?",
+
+    # --- Typos / common mistakes ---
+    "je voudrai aller a {destination} depuis {departure} {time}",
+    "aler a {destination} depuis {departure} {time}",
+    "un bilet {departure} {destination} {time}",
+    "trajet de {departure} ver {destination} {time}",
+    "je veu aller de {departure} a {destination} {time}",
+
+    # --- Arrow / shorthand ---
+    "{departure} => {destination}",
+    "{departure} > {destination}",
+    "{departure} - {destination}",
+    "trajet: {departure} -> {destination} {time}",
+    "{departure} -> {destination} pour moi svp",
+    "billet {departure} {destination} svp",
+    "Je cherche un {departure} - {destination} {time}",
+    "On peut faire un {departure} - {destination} {time} ?",
+
+    # --- Contextual / natural ---
+    "je dois me rendre a {destination} je suis actuellement a {departure} {time}",
+    "comment rejoindre {destination} en partant de {departure} {time}",
+    "je me trouve a {departure} et je veux rejoindre {destination} {time}",
+    "besoin de voyager de {departure} a {destination} {time}",
+    "faut que je parte de {departure} pour aller a {destination} {time}",
+    "je cherche a me deplacer de {departure} vers {destination} {time}",
+    "je voudrais rejoindre {destination} depuis {departure} {time}",
+    "a {departure} aujourd hui je pars a {destination} {time}",
+    "je pars de {departure} je vais aller a {destination} {time}",
+    "Moi c est paul je veux aller a {destination} avec un ami nous partons de {departure} {time}",
+
+    "Je pars de {departure} je vais aller a {destination} avec un pull orange",
+    "Je pars de {departure} et je veux aller au mcdo de {destination}",
 ]
 
 LABELS = {"departure": "DEPARTURE", "destination": "DESTINATION", "time": "TIME"}
+
+
+def apply_synonyms(template):
+    """Randomly replace words with synonyms in the template (before entity injection)."""
+    if random.random() < 0.15:
+        for word, syns in SYNONYMS.items():
+            if word in template and random.random() < 0.5:
+                template = template.replace(word, random.choice(syns), 1)
+    return template
+
+
+def add_random_variations(text):
+    """Add natural text variations while keeping entity offsets aligned."""
+    # 15% chance: remove some accents (length-preserving replacements)
+    if random.random() < 0.15:
+        text = text.replace("à", "a").replace("é", "e").replace("è", "e").replace("ê", "e")
+
+    # 10% chance: replace punctuation with spaces (length-preserving)
+    if random.random() < 0.10:
+        text = text.replace("?", " ").replace("!", " ").replace(",", " ").replace("-", " ")
+    
+
+    return text
+
+
 def generate_example():
     template = random.choice(TEMPLATES)
     departure, destination = random.sample(ENTRIES, 2)
     time = random.choice(TIMES)
+
+
+    # Randomly downcase some entries to add variability
+    if random.random() < 0.3:
+        departure = departure.lower()
+    if random.random() < 0.3:
+        destination = destination.lower()
 
     values = {"departure": departure, "destination": destination, "time": time}
 
@@ -98,14 +214,21 @@ def generate_example():
 
         if field_name:
             value = values[field_name]
-            entities.append((pos, pos + len(value), LABELS[field_name]))
+            entities.append({"start": pos, "end": pos + len(value), "label": LABELS[field_name]})
             parts.append(value)
             pos += len(value)
 
-    return ("".join(parts), {"entities": entities})
+    final_text = "".join(parts)
+
+    # Apply random post-processing variations
+    final_text = add_random_variations(final_text)
+
+    return {"text": final_text, "entities": entities}
+
 
 def generate_dataset(n=500):
     return [generate_example() for _ in range(n)]
+
 
 dataset = generate_dataset(20000)
 
@@ -113,3 +236,7 @@ with open('base/data/processed/travel-order-dataset.json', 'w', encoding='utf-8'
     json.dump(dataset, f, ensure_ascii=False, indent=4)
 
 print(f"dataset generated with {len(dataset)} examples.")
+print(f"templates: {len(TEMPLATES)}, stations: {len(ENTRIES)}, time expressions: {len(TIMES)}")
+print("\nSample:")
+for i in range(5):
+    print(f"  {dataset[i][0]}")

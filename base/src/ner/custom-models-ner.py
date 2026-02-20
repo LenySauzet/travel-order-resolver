@@ -4,11 +4,21 @@ import sys
 import spacy
 from spacy.util import minibatch
 from spacy.training.example import Example
-sys.path.append('base/src')
-from preprocessing import normalize_text
+sys.path.insert(0, 'base/src')
+from preprocessing import normalize_text, unified_to_spacy
 
 with open('base/data/processed/travel-order-dataset.json', 'r') as f:
-    train_data = json.load(f)
+    dataset = json.load(f)
+
+dataset = [unified_to_spacy(item) for item in dataset]
+
+train_split = int(len(dataset) * 0.8)
+train_data = dataset[:train_split]
+test_data = dataset[train_split:]
+
+print(f"Training samples: {len(train_data)}")
+print(f"Test samples: {len(test_data)}")
+
 
 random.seed(42)
 random.shuffle(train_data)

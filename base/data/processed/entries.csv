@@ -3,6 +3,7 @@ index,raw,uic,lat,lon,entries
 1,Abbaretz,87481614,47.5546432,-1.5244159,abbaretz
 2,Abbeville,87317362,50.10221,1.82449,abbeville
 6,Achiet-le-Grand,87342048,50.1317525,2.780168,achiet le grand
+8,Aéroport Charles de Gaulle 2 TGV,87271494,49.003652,2.570892,aeroport charles de gaulle 2 tgv
 9,Agay,87757559,43.4313701,6.8564997,agay
 10,Agde,87781278,43.31728,3.466203,agde
 11,Agen,87586008,44.208311,0.620932,agen
@@ -1629,9 +1630,12 @@ index,raw,uic,lat,lon,entries
 1901,Paray-le-Monial,87694687,46.447312,4.113744,paray le monial
 1903,Parempuyre,87581710,44.9447032,-0.6193396,parempuyre
 1904,Parent - Coudes - Champeix,87734194,45.6139737,3.2178245,parent coudes champeix
+1905,Paris Austerlitz,87547000,48.842285,2.364891,paris austerlitz
 1906,Paris Bercy Bourgogne - Pays d'Auvergne,87686667,48.83917,2.38278,paris bercy bourgogne pays d auvergne
 1907,Paris Est,87113001,48.876742,2.358424,paris est
+1908,Paris Gare de Lyon,87686006,48.844888,2.37352,paris gare de lyon
 1909,Paris Gare du Nord,87271007,48.880185,2.355151,paris gare du nord
+1910,Paris Montparnasse,87391003,48.841172,2.320514,paris montparnasse
 1911,Paris Saint-Lazare,87384008,48.876242,2.325331,paris saint lazare
 1912,Parsac - Gouzon,87597724,46.1986154,2.1744416,parsac gouzon
 1913,Pas des Lanciers,87753285,43.409655,5.253822,pas des lanciers

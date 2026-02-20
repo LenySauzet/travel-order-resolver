@@ -63,3 +63,10 @@ def preprocess_text(text: str) -> str:
     text = lemmatize(text)
     text = text.lower()
     return text
+
+def unified_to_spacy(data):
+    """Convert unified format to spaCy format."""
+    return [
+        data["text"],
+        {"entities": [[e["start"], e["end"], e["label"]] for e in data["entities"]]}
+    ]

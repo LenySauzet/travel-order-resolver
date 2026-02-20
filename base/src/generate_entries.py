@@ -45,20 +45,20 @@ def main():
         uics_raw = str(row['Code(s) UIC'])
         pos_geo = str(row['Position géographique'])
         
-        # Parse UICs: take the first one as primary
+        # Parse UICs
         uic_list = [u.strip() for u in uics_raw.split(';') if u.strip()]
-        primary_uic = uic_list[0] if uic_list else None
-        
-        if not primary_uic:
-            # print(f"Skipping {raw_name}: No UIC code found.")
-            continue
-            
-        # Filter: Check if UIC exists in the graph
-        if valid_uics and primary_uic not in valid_uics:
-            # print(f"Skipping {raw_name} ({primary_uic}): Not in routing graph.")
+
+        if not uic_list:
             continue
 
-            
+        # Pick the first UIC that exists in the routing graph, fallback to first
+        if valid_uics:
+            matched_uic = next((u for u in uic_list if u in valid_uics), None)
+            if not matched_uic:
+                continue
+        else:
+            matched_uic = uic_list[0]
+
         # Parse Lat/Lon from "49.6852237, 1.7743058"
         lat, lon = None, None
         try:
@@ -75,7 +75,7 @@ def main():
         entry = {
             "index": idx, # Stable index from original CSV order
             "raw": raw_name,
-            "uic": primary_uic,
+            "uic": matched_uic,
             "lat": lat,
             "lon": lon,
             "entries": normalized_name
