@@ -41,6 +41,7 @@ dependencies = [
     "seqeval>=1.2.2",
     "sentencepiece>=0.2.0",
     "accelerate>=1.1.0",
+    "neo4j>=5.0.0",
 ]
 
 [tool.pytest.ini_options]
