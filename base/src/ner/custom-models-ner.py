@@ -1,11 +1,23 @@
 import random
 import json
+import sys
 import spacy
 from spacy.util import minibatch
 from spacy.training.example import Example
+sys.path.append('base/src')
+from preprocessing import normalize_text
 
 with open('base/data/processed/travel-order-dataset.json', 'r') as f:
     train_data = json.load(f)
+
+random.seed(42)
+random.shuffle(train_data)
+dev_size = max(1, int(len(train_data) * 0.1))
+if dev_size >= len(train_data):
+    dev_size = max(0, len(train_data) - 1)
+
+dev_data = train_data[:dev_size]
+train_data = train_data[dev_size:]
 
 nlp = spacy.load('fr_core_news_md')
 
@@ -19,23 +31,55 @@ for _, annotations in train_data:
         if ent[2] not in ner.labels:
             ner.add_label(ent[2])
 
+
+def make_examples(dataset):
+    return [Example.from_dict(nlp.make_doc(text), annotations) for text, annotations in dataset]
+
+
 other_pipes = [pipe for pipe in nlp.pipe_names if pipe != 'ner']
 with nlp.disable_pipes(*other_pipes):
     optimizer = nlp.resume_training()
 
-    epochs = 50
-    for epoch in range(epochs):
+    max_epochs = 30
+    patience = 3
+    min_delta = 0.001
+    no_improve = 0
+    best_epoch = -1
+    best_dev_f = float('-inf')
+    best_model_bytes = None
+
+    for epoch in range(max_epochs):
         random.shuffle(train_data)
         losses = {}
-        batches = minibatch(train_data, size=2)
+        batches = minibatch(train_data, size=16)
         for batch in batches:
             exemples = []
             for text, annotations in batch:
                 doc = nlp.make_doc(text)
                 example = Example.from_dict(doc, annotations)
                 exemples.append(example)
-            nlp.update(exemples, drop=0.5, losses=losses)
-        print(f'Epoch: {epoch}, Losses: {losses}')
+            nlp.update(exemples, drop=0.25, losses=losses)
+
+        dev_f = 0.0
+        if dev_data:
+            scores = nlp.evaluate(make_examples(dev_data))
+            dev_f = scores.get('ents_f', 0.0)
+
+        print(f'Epoch: {epoch}, Losses: {losses}, Dev ents_f: {dev_f:.4f}')
+
+        if dev_f > best_dev_f + min_delta:
+            best_dev_f = dev_f
+            best_epoch = epoch
+            best_model_bytes = nlp.to_bytes()
+            no_improve = 0
+        else:
+            no_improve += 1
+            if no_improve >= patience:
+                print(f'Early stopping at epoch {epoch} (best epoch {best_epoch}, best Dev ents_f {best_dev_f:.4f})')
+                break
+
+if best_model_bytes is not None:
+    nlp.from_bytes(best_model_bytes)
 
 nlp.to_disk('base/models/travel-order-ner-model')
 
@@ -54,7 +98,7 @@ test_texts = [
 ]
 
 for text in test_texts:
-    doc = trained_nlp(text)
+    doc = trained_nlp(normalize_text(text))
     print(f'Text: {text}')
     print(f'Entities: {[(ent.text, ent.label_) for ent in doc.ents]}')
     print('-' * 100)

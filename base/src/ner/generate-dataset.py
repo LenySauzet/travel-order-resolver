@@ -22,16 +22,19 @@ TIMES = [
 ]
 
 TEMPLATES = [
-    "je voudrais un billet {departure} {destination} pour {time}",
+    "de {departure} vers {destination}",
+    "{destination} de {departure}",
+    "pour {destination}",
+    "je voudrais un billet de {departure} a {destination} pour {time}",
     "je souhaite me rendre a {destination} depuis {departure} {time}",
     "a quelle heure y a t il des trains vers {destination} {time} en partance de {departure}",
     "comment me rendre a {destination} depuis {departure} {time}",
     "je veux aller a {destination} en partant de {departure} {time}",
     "{time} je cherche un trajet de {departure} a {destination}",
-    "billet de train {departure} {destination} {time}",
+    "billet de train de {departure} a {destination} {time}",
     "quels sont les horaires pour {destination} au depart de {departure} {time}",
     "est ce qu il y a un train de {departure} a {destination} {time}",
-    "trajet {departure} {destination} {time} le moins cher",
+    "trajet de {departure} a {destination} {time} le moins cher",
     "{departure} vers {destination} pour {time}",
     "quels sont les prochains departs de {departure} a destination de {destination} {time}",
     "reserver un billet entre {departure} et {destination} pour {time}",
@@ -40,14 +43,44 @@ TEMPLATES = [
     "{departure} destination {destination} depart {time}",
     "{time} existe t il un trajet de {departure} a {destination}",
     "quand part le prochain train pour {destination} depuis {departure} {time}",
-    "aller simple {departure} {destination} {time}",
+    "aller simple de {departure} a {destination} {time}",
     "combien coute un billet de {departure} a {destination} pour {time}",
     "je voudrais partir de {departure} a {destination} {time}",
-    "quels itineraires pour aller a {destination} a partir de {departure} {time}"
+    "quels itineraires pour aller a {destination} a partir de {departure} {time}",
+    "J'aimerais plutôt bien manger sur {departure} ce midi, du coup un train qui part ce matin et j'habite {destination} pour info",
+    "je souhaitais me rendre à Marseille mais finalement {destination} c'est mieux de {departure}...",
+    "Un pote qui habite Avignon m'a conseillé {destination} donc ce serait d'ici {departure}",
+    "Je veux retourner à {departure}, viens on bouge. un billet d'{departure} c'est pas trop chère",
+    "Quand j'ai fait le trajet pour {departure} hier, j'ai perdu mon stylo. Demain en rentrant sur {destination} je vais le chercher",
+    "On peut faire un {departure} - {destination} {time}?",
+    "Rentrons sur {destination} demain, si on  quitte {departure} tôt on peuit le faire",
+    "Partons de {departure} vers {destination}",
+    "{destination} en provenance de {departure}",
+    "Allons de {departure} à destination de {destination}",
+    "Partons de {departure}, {destination} nous attend",
+    "{departure} à {destination}",
+    "Le voyage de {departure} vers {destination}",
+    "Je souhaite aller de {departure} à {destination}",
+    "Mon trajet {departure} à {destination}",
+    "Donne le trajet de {departure} a {destination} stp",
+    "Le trajet de {departure} vers {destination} est dispo ?",
+    "Jveux aller de {departure} à {destination}",
+    "Avec Luc on part de {departure} pour aller a {destination}",
+    "On est à {departure}, on veut décale à {destination}",
+    "Je pars de {departure}, je vais aller à {destination} avec un pull orange",
+    "Comment je me déplace à {destination} de {departure} ?",
+    "à {departure} aujourd'hui, je pars à {destination} demain",
+    "Je pars de {departure} et je veux aller au mcdo de {destination}",
+    "Moi c'est étienne, je veux aller à {destination} demain avec Malo. Nous partons de {departure}",
+    "Je m'échappe à {destination} demain, il y a des billets depuis {departure} ?",
+    "Je vais à {destination} pour le boulot, en partant de {departure}",
+    "Je suis situé à {departure}, un train pour {destination} est-il disponible ?",
+    "Je souhaite aller d'{departure} vers {destination}",
+    "Puis-je partir de {departure} et arriver à {destination} ?",
+    "Le trajet {departure} - {destination} est-il disponible ?",
 ]
 
 LABELS = {"departure": "DEPARTURE", "destination": "DESTINATION", "time": "TIME"}
-
 def generate_example():
     template = random.choice(TEMPLATES)
     departure, destination = random.sample(ENTRIES, 2)
@@ -74,7 +107,7 @@ def generate_example():
 def generate_dataset(n=500):
     return [generate_example() for _ in range(n)]
 
-dataset = generate_dataset(500)
+dataset = generate_dataset(20000)
 
 with open('base/data/processed/travel-order-dataset.json', 'w', encoding='utf-8') as f:
     json.dump(dataset, f, ensure_ascii=False, indent=4)
