@@ -1,8 +1,9 @@
-
-from doctest import Example
 import json
-from base.src.preprocessing import unified_to_spacy
+import sys
+sys.path.insert(0, 'base/src')
+from preprocessing import unified_to_spacy
 import spacy
+from spacy.training.example import Example
 from spacy.scorer import Scorer
 
 
@@ -42,5 +43,3 @@ print(f"Test samples: {len(test_data)}")
 trained_nlp = spacy.load('base/models/travel-order-ner-model')
 print("\n=== Evaluating on Test Data ===")
 test_model(trained_nlp, test_data)
-print("\n=== Evaluating on Validation Data ===")
-test_model(trained_nlp, val_data)
