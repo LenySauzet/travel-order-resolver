@@ -39,6 +39,8 @@ dependencies = [
     "torch>=2.0.0",
     "transformers>=4.40.0",
     "seqeval>=1.2.2",
+    "sentencepiece>=0.2.0",
+    "accelerate>=1.1.0",
 ]
 
 [tool.pytest.ini_options]
