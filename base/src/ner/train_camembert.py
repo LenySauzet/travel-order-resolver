@@ -17,6 +17,7 @@ from transformers import (
     TrainingArguments,
     Trainer,
     DataCollatorForTokenClassification,
+    EarlyStoppingCallback,
 )
 from sklearn.model_selection import train_test_split
 from seqeval.metrics import f1_score
@@ -155,17 +156,17 @@ def main():
 
     training_args = TrainingArguments(
         output_dir="base/models/BERT/camembert-ner-travel-checkpoints",
-        num_train_epochs=10,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
-        learning_rate=3e-5,
+        num_train_epochs=3,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=64,
+        learning_rate=5e-5,
         weight_decay=0.01,
         eval_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end=True,
         metric_for_best_model="f1",
         logging_dir="./logs",
-        logging_steps=10,
+        logging_steps=50,
         warmup_ratio=0.1,
         save_total_limit=2,
         fp16=torch.cuda.is_available(),
@@ -184,6 +185,7 @@ def main():
         processing_class=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
     )
 
     # Train
