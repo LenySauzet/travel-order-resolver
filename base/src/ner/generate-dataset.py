@@ -239,4 +239,4 @@ print(f"dataset generated with {len(dataset)} examples.")
 print(f"templates: {len(TEMPLATES)}, stations: {len(ENTRIES)}, time expressions: {len(TIMES)}")
 print("\nSample:")
 for i in range(5):
-    print(f"  {dataset[i][0]}")
+    print(f"  {dataset[i]['text']}")
