@@ -28,9 +28,9 @@ class GeoLocationService:
         df = pd.read_csv(path)
 
         GeoLocationService._stations_with_coords = [
-            {"id": row["index"], "lat": float(row["Y_WGS84"]), "lon": float(row["X_WGS84"])}
+            {"id": row["index"], "lat": float(row["lat"]), "lon": float(row["lon"])}
             for _, row in df.iterrows()
-            if pd.notna(row["Y_WGS84"]) and pd.notna(row["X_WGS84"])
+            if pd.notna(row["lat"]) and pd.notna(row["lon"])
         ]
 
     @staticmethod

@@ -9,6 +9,9 @@ class StationMatch(BaseModel):
     raw: str
     matched: str
     score: int
+    uic: str | None = None
+    lat: float | None = None
+    lon: float | None = None
 
 
 class StationMatcher:
@@ -16,7 +19,7 @@ class StationMatcher:
 
     _instance: "StationMatcher | None" = None
     _entries_list: list[str] | None = None
-    _entries_lookup: dict[str, tuple[int, str]] | None = None
+    _entries_lookup: dict[str, tuple[int, str, str, float | None, float | None]] | None = None
     _all_entries: list[dict] | None = None
 
     DEFAULT_DATA_PATH = "base/data/processed/entries.csv"
@@ -42,13 +45,36 @@ class StationMatcher:
         
         df = pd.read_csv(path)
         
+        def parse_coord(value) -> float | None:
+            if pd.notna(value):
+                return float(value)
+            return None
+
+        def parse_uic(value) -> str | None:
+            if pd.notna(value):
+                return str(value)
+            return None
+
         StationMatcher._entries_list = df['entries'].tolist()
         StationMatcher._entries_lookup = {
-            row['entries']: (row['index'], row['raw'])
+            row['entries']: (
+                int(row['index']),
+                row['raw'],
+                parse_uic(row.get('uic')) or "",
+                parse_coord(row.get('lat')),
+                parse_coord(row.get('lon')),
+            )
             for _, row in df.iterrows()
         }
         StationMatcher._all_entries = [
-            {"id": row['index'], "raw": row['raw'], "entries": row['entries']}
+            {
+                "id": int(row['index']),
+                "raw": row['raw'],
+                "entries": row['entries'],
+                "uic": parse_uic(row.get('uic')),
+                "lat": parse_coord(row.get('lat')),
+                "lon": parse_coord(row.get('lon')),
+            }
             for _, row in df.iterrows()
         ]
 
@@ -61,16 +87,27 @@ class StationMatcher:
             query.lower().strip(),
             self._entries_list,
             score_cutoff=cutoff,
-            scorer=fuzz.token_sort_ratio
+            scorer=fuzz.partial_ratio
         )
+        
+        print("query", query)
+        print("result", result)
 
         if result is None:
             return None
 
         matched_entry, score = result[0], result[1]
-        entry_id, raw_name = self._entries_lookup[matched_entry]  # type: ignore
+        entry_id, raw_name, uic_code, lat, lon = self._entries_lookup[matched_entry]  # type: ignore
 
-        return StationMatch(id=entry_id, raw=raw_name, matched=matched_entry, score=score)
+        return StationMatch(
+            id=entry_id,
+            raw=raw_name,
+            matched=matched_entry,
+            score=score,
+            uic=uic_code,
+            lat=lat,
+            lon=lon,
+        )
 
     def get_by_id(self, entry_id: int) -> StationMatch | None:
         for entry in self._all_entries or []:
@@ -79,7 +116,10 @@ class StationMatcher:
                     id=entry["id"],
                     raw=entry["raw"],
                     matched=entry["entries"],
-                    score=100
+                    score=100,
+                    uic=entry.get("uic"),
+                    lat=entry.get("lat"),
+                    lon=entry.get("lon"),
                 )
         return None
 

@@ -25,6 +25,7 @@ def get_station_matcher() -> StationMatcher:
 def get_navitia_service() -> NavitiaService:
     return NavitiaService.get_instance()
 
+
 @router.get("/identify-travel-order", response_model=TravelOrderResponse)
 async def identify_travel_order(
     text: str = Query(...),
@@ -42,7 +43,17 @@ async def get_stations(
     matcher: StationMatcher = Depends(get_station_matcher),
 ) -> StationsListResponse:
     entries = matcher.get_all_entries()
-    return StationsListResponse(stations=[{"id": e["id"], "name": e["raw"]} for e in entries])
+    return StationsListResponse(
+        stations=[
+            {
+                "id": e["id"],
+                "name": e["raw"],
+                "lat": e.get("lat"),
+                "lon": e.get("lon"),
+            }
+            for e in entries
+        ]
+    )
 
 
 @router.get("/journeys", response_model=JourneySearchResponse)
