@@ -33,6 +33,11 @@ class RoutingModeResponse(BaseModel):
     options: list[str]
 
 
+class NerModelsResponse(BaseModel):
+    models: dict[str, str]  # {key: display_name}
+    current: str  # key of default model
+
+
 class ShortestPathResponse(BaseModel):
     duration_minutes: float
     path: list[dict]

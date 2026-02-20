@@ -7,6 +7,7 @@ from streamlit_js_eval import get_geolocation
 
 from api import (
     get_best_routes,
+    get_ner_models,
     get_routing_mode,
     get_stations,
     identify_travel_order,
@@ -111,6 +112,7 @@ SESSION_DEFAULTS: dict[str, object] = {
     "route_error": None,
     "routing_mode": "no_shortcuts",
     "routing_mode_options": ["shortcuts", "no_shortcuts"],
+    "ner_model": "spacy",
     "batch_upload_signature": None,
     "batch_upload_results": [],
     "process_result": None,  # Stores last processing result for display
@@ -233,6 +235,7 @@ def process_identification() -> tuple[bool, float]:
     result = identify_travel_order(
         st.session_state.messages[-1]["content"],
         st.session_state.user_coords,
+        model=st.session_state.get("ner_model", "spacy"),
     )
 
     if not result:
@@ -440,9 +443,11 @@ def main() -> None:
     with title_col:
         st.title("Bonjour !")
     with settings_col:
+        ner_models = get_ner_models()
         render_settings_trigger(
             st.session_state.get("routing_mode", "no_shortcuts"),
             apply_routing_mode,
+            ner_models,
         )
     render_chat()
 

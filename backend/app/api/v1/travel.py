@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-from ...models.travel import TravelOrderResponse
+from ...models.travel import TravelOrderResponse, NerModelsResponse
 from ...models.journey import JourneySearchResponse
 from ...services.travel_service import TravelService
 from ...services.station_matcher import StationMatcher
@@ -26,16 +26,25 @@ def get_navitia_service() -> NavitiaService:
     return NavitiaService.get_instance()
 
 
+@router.get("/ner-models", response_model=NerModelsResponse)
+async def get_ner_models(
+    service: TravelService = Depends(get_travel_service),
+) -> NerModelsResponse:
+    available = service.get_available_models()
+    return NerModelsResponse(models=available, current="spacy")
+
+
 @router.get("/identify-travel-order", response_model=TravelOrderResponse)
 async def identify_travel_order(
     text: str = Query(...),
+    model: str = Query("spacy"),
     lat: float | None = Query(None),
     lon: float | None = Query(None),
     service: TravelService = Depends(get_travel_service),
 ) -> TravelOrderResponse:
     print("latlon", lat, lon)
     coords = (lat, lon) if lat is not None and lon is not None else None
-    return service.identify_travel_order(text, coords)
+    return service.identify_travel_order(text, coords, model_key=model)
 
 
 @router.get("/stations", response_model=StationsListResponse)

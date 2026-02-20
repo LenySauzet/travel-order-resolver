@@ -33,11 +33,11 @@ def transcribe_audio(audio_bytes: bytes) -> str:
 
 
 def identify_travel_order(
-    text: str, coords: tuple[float, float] | None = None
+    text: str, coords: tuple[float, float] | None = None, model: str = "spacy"
 ) -> TravelOrderResponse | None:
     """Identify a travel order from text."""
     try:
-        params: dict[str, str] = {"text": text}
+        params: dict[str, str] = {"text": text, "model": model}
         if coords:
             params["lat"] = str(coords[0])
             params["lon"] = str(coords[1])
@@ -54,6 +54,17 @@ def identify_travel_order(
         return None
 
 
+@st.cache_data(ttl=600)
+def get_ner_models() -> dict[str, str]:
+    """Fetch the available NER models (cached for 10 minutes)."""
+    try:
+        response = requests.get(f"{API_BASE_URL}/ner-models", timeout=DEFAULT_TIMEOUT)
+        response.raise_for_status()
+        return response.json().get("models", {})
+    except requests.exceptions.RequestException:
+        return {"spacy": "SpaCy NER"}
+
+
 @st.cache_data(ttl=3600)
 def get_stations() -> list[Station]:
     """Fetch the list of stations (cached for 1 hour)."""
@@ -63,7 +74,6 @@ def get_stations() -> list[Station]:
         data = response.json().get("stations", [])
         return [Station.model_validate(s) for s in data]
     except requests.exceptions.RequestException:
-        st.toast("❌ Erreur transcription")
         return []
 
 
