@@ -3,7 +3,14 @@
 import requests
 import streamlit as st
 
-from models import JourneySearchResponse, Station, TravelOrderResponse
+from models import (
+    JourneySearchResponse,
+    Station,
+    TravelOrderResponse,
+    ShortestPathResponse,
+    BestRoutesResponse,
+    RoutingModeResponse,
+)
 
 API_BASE_URL = "http://localhost:8000/api/v1"
 DEFAULT_TIMEOUT = 10
@@ -87,4 +94,73 @@ def search_journeys(
         return JourneySearchResponse.model_validate(response.json())
     except requests.exceptions.RequestException as e:
         st.toast(f"❌ Error recherche de trajets: {e}")
+        return None
+
+def get_shortest_path(start_id: int, end_id: int) -> ShortestPathResponse | None:
+    """
+    Get the shortest path between two stations.
+    """
+    try:
+        params: dict[str, int] = {
+            "start_id": start_id,
+            "end_id": end_id,
+        }
+        
+        response = requests.get(
+            f"{API_BASE_URL}/shortest-path",
+            params=params,
+            timeout=SEARCH_TIMEOUT,
+        )
+        response.raise_for_status()
+        return ShortestPathResponse.model_validate(response.json())
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur calcul itinéraire: {e}")
+        return None
+
+
+def get_best_routes(start_id: int, end_id: int, limit: int = 5) -> BestRoutesResponse | None:
+    """Get best Dijkstra routes between two stations."""
+    try:
+        params: dict[str, int] = {
+            "start_id": start_id,
+            "end_id": end_id,
+            "limit": limit,
+        }
+
+        response = requests.get(
+            f"{API_BASE_URL}/best-routes",
+            params=params,
+            timeout=SEARCH_TIMEOUT,
+        )
+        response.raise_for_status()
+        return BestRoutesResponse.model_validate(response.json())
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur calcul itinéraires: {e}")
+        return None
+
+
+def get_routing_mode() -> RoutingModeResponse | None:
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/routing-mode",
+            timeout=DEFAULT_TIMEOUT,
+        )
+        response.raise_for_status()
+        return RoutingModeResponse.model_validate(response.json())
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur lecture mode routing: {e}")
+        return None
+
+
+def set_routing_mode(mode: str) -> RoutingModeResponse | None:
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/routing-mode",
+            params={"mode": mode},
+            timeout=DEFAULT_TIMEOUT,
+        )
+        response.raise_for_status()
+        return RoutingModeResponse.model_validate(response.json())
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur changement mode routing: {e}")
         return None

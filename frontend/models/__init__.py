@@ -2,7 +2,14 @@
 
 from .station import Station
 from .journey import Journey, JourneyPlace, JourneySection, JourneySearchResponse
-from .travel import TravelOrderResponse
+from .travel import (
+    TravelOrderResponse,
+    ShortestPathResponse,
+    BestRoutesResponse,
+    RoutingModeResponse,
+    RouteOption,
+    RouteStep,
+)
 
 __all__ = [
     "Station",
@@ -11,4 +18,9 @@ __all__ = [
     "JourneySection",
     "JourneySearchResponse",
     "TravelOrderResponse",
+    "ShortestPathResponse",
+    "BestRoutesResponse",
+    "RoutingModeResponse",
+    "RouteOption",
+    "RouteStep",
 ]

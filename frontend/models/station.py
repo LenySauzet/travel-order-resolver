@@ -8,3 +8,5 @@ class Station(BaseModel):
 
     id: int
     name: str
+    lat: float | None = None
+    lon: float | None = None
