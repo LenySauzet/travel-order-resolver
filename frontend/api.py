@@ -9,6 +9,8 @@ from models import (
     TravelOrderResponse,
     ShortestPathResponse,
     BestRoutesResponse,
+    RouteOption,
+    RouteStep,
     RoutingModeResponse,
 )
 
@@ -159,6 +161,59 @@ def get_routing_mode() -> RoutingModeResponse | None:
         return RoutingModeResponse.model_validate(response.json())
     except requests.exceptions.RequestException as e:
         st.toast(f"❌ Erreur lecture mode routing: {e}")
+        return None
+
+
+def get_neo4j_fastest_path(from_stop: str, to_stop: str, depart_after: str = "08:00:00") -> BestRoutesResponse | None:
+    """Get fastest path via Neo4j."""
+    try:
+        params: dict[str, str] = {
+            "from_stop": from_stop,
+            "to_stop": to_stop,
+            "depart_after": depart_after,
+        }
+        response = requests.get(
+            f"{API_BASE_URL}/neo4j/fastest-path",
+            params=params,
+            timeout=SEARCH_TIMEOUT,
+        )
+        response.raise_for_status()
+        data = response.json()
+        route = RouteOption(
+            duration_minutes=data["duration_minutes"],
+            path=[RouteStep(id=0, name=s) for s in data["stations"]],
+        )
+        return BestRoutesResponse(routes=[route])
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur Neo4j fastest-path: {e}")
+        return None
+
+
+def get_neo4j_fewest_stops(from_stop: str, to_stop: str, depart_after: str = "08:00:00") -> BestRoutesResponse | None:
+    """Get fewest-stops routes via Neo4j."""
+    try:
+        params: dict[str, str] = {
+            "from_stop": from_stop,
+            "to_stop": to_stop,
+            "depart_after": depart_after,
+        }
+        response = requests.get(
+            f"{API_BASE_URL}/neo4j/fewest-stops",
+            params=params,
+            timeout=SEARCH_TIMEOUT,
+        )
+        response.raise_for_status()
+        data = response.json()
+        routes = [
+            RouteOption(
+                duration_minutes=r.get("duration_minutes"),
+                path=[RouteStep(id=0, name=s) for s in r["stations"]],
+            )
+            for r in data["routes"]
+        ]
+        return BestRoutesResponse(routes=routes)
+    except requests.exceptions.RequestException as e:
+        st.toast(f"❌ Erreur Neo4j fewest-stops: {e}")
         return None
 
 

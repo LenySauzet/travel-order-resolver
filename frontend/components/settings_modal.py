@@ -18,6 +18,26 @@ def render_settings_modal(
 
         st.divider()
 
+        st.write("Moteur de routage")
+        routing_engines = {
+            "dijkstra": "Dijkstra (CSV)",
+            "neo4j_fastest": "Neo4j (Plus rapide)",
+            "neo4j_fewest": "Neo4j (Moins d'arrêts)",
+        }
+        engine_keys = list(routing_engines.keys())
+        engine_labels = list(routing_engines.values())
+        current_engine = st.session_state.get("routing_engine", "dijkstra")
+        current_engine_idx = engine_keys.index(current_engine) if current_engine in engine_keys else 0
+        selected_engine_label = st.selectbox(
+            "Moteur de routage",
+            options=engine_labels,
+            index=current_engine_idx,
+            label_visibility="collapsed",
+        )
+        selected_engine_key = engine_keys[engine_labels.index(selected_engine_label)] if selected_engine_label else engine_keys[0]
+
+        st.divider()
+
         st.write("Modèle NER")
         model_keys = list(ner_models.keys())
         model_labels = list(ner_models.values())
@@ -36,6 +56,7 @@ def render_settings_modal(
         if target_mode != current_mode:
             apply_mode(target_mode)
         st.session_state.ner_model = selected_key
+        st.session_state.routing_engine = selected_engine_key
         st.rerun()
 
 

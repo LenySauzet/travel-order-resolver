@@ -23,7 +23,7 @@ class RouteStep(BaseModel):
 class RouteOption(BaseModel):
     """Dijkstra route option."""
 
-    duration_minutes: float
+    duration_minutes: float | None = None
     path: list[RouteStep]
 
 

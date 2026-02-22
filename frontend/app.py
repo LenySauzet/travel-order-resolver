@@ -7,6 +7,8 @@ from streamlit_js_eval import get_geolocation
 
 from api import (
     get_best_routes,
+    get_neo4j_fastest_path,
+    get_neo4j_fewest_stops,
     get_ner_models,
     get_routing_mode,
     get_stations,
@@ -113,6 +115,7 @@ SESSION_DEFAULTS: dict[str, object] = {
     "routing_mode": "no_shortcuts",
     "routing_mode_options": ["shortcuts", "no_shortcuts"],
     "ner_model": "spacy",
+    "routing_engine": "dijkstra",
     "batch_upload_signature": None,
     "batch_upload_results": [],
     "process_result": None,  # Stores last processing result for display
@@ -201,10 +204,13 @@ def update_user_coords() -> None:
 
 
 def sync_routing_mode() -> None:
+    if st.session_state.get("_routing_mode_synced"):
+        return
     response = get_routing_mode()
     if response:
         st.session_state.routing_mode = response.mode
         st.session_state.routing_mode_options = response.options
+    st.session_state._routing_mode_synced = True
 
 
 def execute_search() -> float:
@@ -219,7 +225,16 @@ def execute_search() -> float:
         return time.perf_counter() - start
 
     stations: list[Station] = st.session_state.stations
-    if result := get_best_routes(stations[dep_idx].id, stations[dest_idx].id, limit=5):
+    engine = st.session_state.get("routing_engine", "dijkstra")
+
+    if engine == "neo4j_fastest":
+        result = get_neo4j_fastest_path(stations[dep_idx].name, stations[dest_idx].name)
+    elif engine == "neo4j_fewest":
+        result = get_neo4j_fewest_stops(stations[dep_idx].name, stations[dest_idx].name)
+    else:
+        result = get_best_routes(stations[dep_idx].id, stations[dest_idx].id, limit=5)
+
+    if result:
         if result.error:
             st.session_state.route_error = result.error
         else:

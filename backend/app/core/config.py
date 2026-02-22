@@ -17,6 +17,9 @@ class Config(BaseSettings):
     navitia_base_url: str = "https://api.navitia.io/v1"
     navitia_coverage: str = "sncf"
     google_maps_api_key: str = ""
+    neo4j_uri: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "password"
 
     @property
     def db_url(self):

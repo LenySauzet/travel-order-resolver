@@ -51,9 +51,12 @@ def render_routes_results(
         destination = route.path[-1].name
         stop_names = [step.name for step in route.path]
         with st.container(border=True):
-            st.write(
-                f"**Option {i + 1}** - {format_duration_minutes(route.duration_minutes)}"
-            )
+            if route.duration_minutes is not None:
+                st.write(
+                    f"**Option {i + 1}** - {format_duration_minutes(route.duration_minutes)}"
+                )
+            else:
+                st.write(f"**Option {i + 1}**")
             st.caption(f"{departure} → {destination}")
             st.caption(f"{len(route.path)} étape(s)")
             render_route_stops(stop_names)
