@@ -1,6 +1,7 @@
 import csv
 import os
 import time
+from collections import defaultdict
 from neo4j import GraphDatabase
 
 URI = "bolt://localhost:7687"
@@ -15,6 +16,33 @@ def load_csv(filename):
     with open(path, encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
 
+def deduplicate_trips(data):
+    groups = defaultdict(list)
+    for row in data:
+        key = row["trip_id"][:-9]  # strip :YYYYMMDD
+        date = row["trip_id"][-8:]
+        groups[key].append((date, row))
+    deduped = []
+    for key, entries in groups.items():
+        row = dict(entries[0][1])
+        row["trip_id"] = key
+        row["dates"] = [d for d, _ in entries]
+        deduped.append(row)
+    return deduped
+
+
+def deduplicate_stop_times(data):
+    seen = set()
+    deduped = []
+    for row in data:
+        key = row["trip_id"][:-9]
+        pair = (key, row["stop_sequence"])
+        if pair not in seen:
+            seen.add(pair)
+            row = dict(row)
+            row["trip_id"] = key
+            deduped.append(row)
+    return deduped
 
 def batch_import(session, query, data, label=""):
     total = len(data)
@@ -116,6 +144,7 @@ def import_routes(session):
 def import_trips(session):
     print("Importing trips...")
     data = load_csv("trips.txt")
+    data = deduplicate_trips(data)
     batch_import(
         session,
         """
@@ -125,7 +154,8 @@ def import_trips(session):
             trip_id: row.trip_id,
             headsign: row.trip_headsign,
             direction_id: row.direction_id,
-            service_id: row.service_id
+            service_id: row.service_id,
+            dates: row.dates
         })
         CREATE (r)-[:HAS_TRIP]->(t)
         """,
@@ -137,6 +167,7 @@ def import_trips(session):
 def import_stop_times(session):
     print("Importing stop_times (this may take a few minutes)...")
     data = load_csv("stop_times.txt")
+    data = deduplicate_stop_times(data)
     batch_import(
         session,
         """
@@ -202,8 +233,11 @@ def add_travel_time_weights(session):
         """
         CALL apoc.periodic.iterate(
             'MATCH (st1:StopTime)-[r:NEXT]->(st2:StopTime) RETURN st1, st2, r',
-            'WITH st1, st2, r
-             SET r.travel_time = duration.between(time(st1.departure), time(st2.arrival)).minutes',
+            'WITH st1, st2, r,
+                  toInteger(substring(st2.arrival, 0, 2)) * 60 + toInteger(substring(st2.arrival, 3, 2))
+                  - toInteger(substring(st1.departure, 0, 2)) * 60 - toInteger(substring(st1.departure, 3, 2))
+                  AS mins
+             SET r.travel_time = mins',
             {batchSize: 5000, parallel: false}
         )
         """
@@ -224,9 +258,10 @@ def create_transfer_relationships(session):
              WHERE st1.trip_id <> st2.trip_id
                AND st2.departure > st1.arrival
              RETURN st1, st2',
-            'WITH st1, st2
-             WITH st1, st2,
-                  duration.between(time(st1.arrival), time(st2.departure)).minutes AS wait
+            'WITH st1, st2,
+                  toInteger(substring(st2.departure, 0, 2)) * 60 + toInteger(substring(st2.departure, 3, 2))
+                  - toInteger(substring(st1.arrival, 0, 2)) * 60 - toInteger(substring(st1.arrival, 3, 2))
+                  AS wait
              WHERE wait >= 5 AND wait <= 120
              CREATE (st1)-[:TRANSFER {wait_time: wait}]->(st2)',
             {batchSize: 5000, parallel: false}
@@ -241,7 +276,6 @@ def create_transfer_relationships(session):
 
 def add_unified_weight(session):
     print("Adding unified 'weight' property on NEXT and TRANSFER relationships...")
-    # Parse HH:MM manually to handle GTFS times >= 24:00:00 (next-day service)
     result = session.run(
         """
         CALL apoc.periodic.iterate(
@@ -279,13 +313,11 @@ def add_unified_weight(session):
 
 def create_gds_projection(session):
     print("Creating GDS graph projection...")
-    # Drop existing projection if any
     session.run(
         """
         CALL gds.graph.drop('transport', false)
         """
     )
-    # Project StopTime nodes with NEXT and TRANSFER relationships using unified weight
     session.run(
         """
         CALL gds.graph.project(
@@ -314,34 +346,42 @@ def create_gds_projection(session):
 
 def find_fastest_path(session, from_stop, to_stop, depart_after="08:00:00"):
     print(f"Finding fastest path (Dijkstra): {from_stop} -> {to_stop} (after {depart_after})...")
+
+    # Collect destination stop node IDs for post-filtering
+    dest_ids = session.run(
+        """
+        MATCH (:Stop {name: $to_stop})<-[:PART_OF]-()<-[:AT_STOP]-(st:StopTime)
+        WHERE st.stop_sequence > 0
+        RETURN collect(id(st)) AS ids
+        """,
+        to_stop=to_stop,
+    ).single()["ids"]
+
     result = session.run(
         """
         MATCH (:Stop {name: $from_stop})<-[:PART_OF]-()<-[:AT_STOP]-(source:StopTime)
         WHERE source.departure >= $depart_after
-        WITH source ORDER BY source.departure LIMIT 1
-
-        MATCH (:Stop {name: $to_stop})<-[:PART_OF]-()<-[:AT_STOP]-(target:StopTime)
-        WITH source, collect(target) AS targets
-        UNWIND targets[..20] AS target
+        WITH source ORDER BY source.departure LIMIT 10
 
         CALL gds.shortestPath.dijkstra.stream('transport', {
             sourceNode: source,
-            targetNode: target,
+            targetNodes: [n IN gds.util.asNodes($dest_ids) | n],
             relationshipWeightProperty: 'weight'
         })
         YIELD totalCost, path
-        WITH totalCost, nodes(path) AS pathNodes, length(path) AS nb_steps
+        WITH source, totalCost, nodes(path) AS pathNodes, length(path) AS nb_steps
         UNWIND pathNodes AS n
         OPTIONAL MATCH (n)-[:AT_STOP]->(s:Stop)-[:PART_OF]->(p:Stop)
-        WITH totalCost, nb_steps, collect(DISTINCT p.name) AS gares,
+        WITH source, totalCost, nb_steps,
+             collect(DISTINCT p.name) AS gares,
              collect(DISTINCT n.trip_id) AS trips
         RETURN totalCost, nb_steps, gares, trips
         ORDER BY totalCost
         LIMIT 1
         """,
         from_stop=from_stop,
-        to_stop=to_stop,
         depart_after=depart_after,
+        dest_ids=dest_ids,
     )
     record = result.single()
     if record:
@@ -358,15 +398,23 @@ def find_fewest_stops(session, from_stop, to_stop, depart_after="08:00:00"):
     print(f"Finding path with fewest stops: {from_stop} -> {to_stop} (after {depart_after})...")
     result = session.run(
         """
-        MATCH (fromStop:Stop {name: $from_stop})<-[:PART_OF]-(fp)<-[:AT_STOP]-(source:StopTime)
+        MATCH (:Stop {name: $from_stop})<-[:PART_OF]-()<-[:AT_STOP]-(source:StopTime)
         WHERE source.departure >= $depart_after
-        WITH source ORDER BY source.departure LIMIT 5
-        MATCH (toStop:Stop {name: $to_stop})<-[:PART_OF]-(tp)<-[:AT_STOP]-(target:StopTime)
+        WITH source ORDER BY source.departure LIMIT 10
+
+        MATCH (:Stop {name: $to_stop})<-[:PART_OF]-()<-[:AT_STOP]-(target:StopTime)
+        WHERE target.arrival > source.departure
+          AND target.stop_sequence > 0
         WITH source, target
-        MATCH p = shortestPath((source)-[:NEXT|TRANSFER*]->(target))
+        ORDER BY target.arrival
+        WITH source, collect(target)[..200] AS targets
+        UNWIND targets AS target
+
+        MATCH p = shortestPath((source)-[:NEXT|TRANSFER*..100]->(target))
         RETURN length(p) AS nb_steps,
                [n IN nodes(p) | [(n)-[:AT_STOP]->(s) | s.name][0]] AS gares,
-               [n IN nodes(p) | n.trip_id] AS trips
+               [n IN nodes(p) | n.trip_id] AS trips,
+               size([r IN relationships(p) WHERE type(r) = 'TRANSFER']) AS nb_transfers
         ORDER BY nb_steps
         LIMIT 5
         """,
@@ -376,11 +424,10 @@ def find_fewest_stops(session, from_stop, to_stop, depart_after="08:00:00"):
     )
     records = list(result)
     for r in records:
-        print(f"  {r['nb_steps']} steps | Stations: {r['gares']}")
+        print(f"  {r['nb_steps']} stops, {r['nb_transfers']} transfers | Stations: {r['gares']}")
     if not records:
         print("  No path found")
     return records
-
 
 def print_stats(session):
     print("\n--- Import Summary ---")
@@ -422,10 +469,10 @@ def main():
 
     with driver.session() as session:
         create_constraints(session)
-        
+
         import_all_nodes(session)
         build_all_relationships(session)
-        
+
         create_gds_projection(session)
         print_stats(session)
 
