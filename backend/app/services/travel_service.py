@@ -19,6 +19,11 @@ NER_MODELS: dict[str, dict[str, str]] = {
         "repo": "YanisC/fr_travel_order_ner_model",
         "type": "spacy",
     },
+    "spacy_1_1": {
+        "name": "SpaCy NER v1.1",
+        "repo": "YanisC/fr_travel_order_ner_model1_1",
+        "type": "spacy",
+    },
     "camembert": {
         "name": "CamemBERT NER",
         "repo": "YanisC/camembert-ner-travel",
