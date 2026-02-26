@@ -1,10 +1,11 @@
-import os
 from typing import Any
-
+from huggingface_hub import snapshot_download
 import spacy
-from spacy.language import Language
 import unicodedata
 import re
+
+import torch
+from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
 
 from ..models.travel import TravelOrderResponse, TravelServiceConfig
 from .time_normalizer import TimeNormalizer
@@ -15,12 +16,12 @@ from .geolocation import GeoLocationService
 NER_MODELS: dict[str, dict[str, str]] = {
     "spacy": {
         "name": "SpaCy NER",
-        "path": "base/models/travel-order-ner-model",
+        "repo": "YanisC/fr_travel_order_ner_model",
         "type": "spacy",
     },
     "camembert": {
         "name": "CamemBERT NER",
-        "path": "base/models/BERT/camembert-ner-travel",
+        "repo": "YanisC/camembert-ner-travel",
         "type": "transformers",
     },
 }
@@ -54,20 +55,18 @@ class TravelService:
             return TravelService._models[key]
 
         model_info = NER_MODELS[key]
-        model_path = model_info["path"]
+        model_repo = model_info["repo"]
 
         if model_info["type"] == "spacy":
+            model_path = snapshot_download(repo_id=model_repo)
             loaded = spacy.load(model_path)
         elif model_info["type"] == "transformers":
-            import torch
-            from transformers import AutoTokenizer, AutoModelForTokenClassification
 
-            tokenizer = AutoTokenizer.from_pretrained(model_path)
-            model = AutoModelForTokenClassification.from_pretrained(model_path)
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model.to(device)
-            model.eval()
-            loaded = (model, tokenizer)
+            bert_tokenizer = AutoTokenizer.from_pretrained(model_repo)
+            bert_model = AutoModelForTokenClassification.from_pretrained(model_repo)
+
+            device = 0 if torch.cuda.is_available() else -1
+            loaded = pipeline("ner", model=bert_model, tokenizer=bert_tokenizer, aggregation_strategy="simple", device=device)
         else:
             raise ValueError(f"Unknown model type: {model_info['type']}")
 
@@ -75,12 +74,7 @@ class TravelService:
         return loaded
 
     def get_available_models(self) -> dict[str, str]:
-        """Return models whose path exists on disk."""
-        available = {}
-        for key, info in NER_MODELS.items():
-            if os.path.exists(info["path"]):
-                available[key] = info["name"]
-        return available
+        return {key: info["name"] for key, info in NER_MODELS.items()}
 
     def _match_station_id(self, text: str | None) -> int | None:
         if not text:
@@ -90,63 +84,6 @@ class TravelService:
 
     def _get_nearest_station_id(self, coords: tuple[float, float]) -> int | None:
         return self._geolocation.find_nearest_station_id(*coords)
-
-    def _predict_camembert(self, text: str, model: Any, tokenizer: Any) -> dict[str, list[str]]:
-        """Run CamemBERT NER inference, reusing logic from test_camembert.py."""
-        import torch
-
-        device = next(model.parameters()).device
-        model_id2label = model.config.id2label
-
-        inputs = tokenizer(
-            text,
-            return_tensors="pt",
-            return_offsets_mapping=True,
-            padding=True,
-            truncation=True,
-            max_length=128,
-        )
-
-        offset_mapping = inputs.pop("offset_mapping").squeeze().tolist()
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-
-        with torch.no_grad():
-            outputs = model(**inputs)
-            predictions = torch.argmax(outputs.logits, dim=2).squeeze().tolist()
-
-        if not isinstance(predictions, list):
-            predictions = [predictions]
-
-        entities: dict[str, list[str]] = {"DEPARTURE": [], "DESTINATION": [], "TIME": []}
-        current_entity: str | None = None
-        current_tokens: list[tuple[int, int]] = []
-
-        for pred, (start, end) in zip(predictions, offset_mapping):
-            if start == 0 and end == 0:
-                continue
-
-            label = model_id2label.get(pred, "O")
-
-            if label.startswith("B-"):
-                if current_entity and current_tokens:
-                    entity_text = text[current_tokens[0][0]:current_tokens[-1][1]].strip()
-                    entities[current_entity].append(entity_text)
-                current_entity = label[2:]
-                current_tokens = [(start, end)]
-            elif label.startswith("I-") and current_entity == label[2:]:
-                current_tokens.append((start, end))
-            else:
-                if current_entity and current_tokens:
-                    entity_text = text[current_tokens[0][0]:current_tokens[-1][1]].strip()
-                    entities[current_entity].append(entity_text)
-                current_entity = None
-                current_tokens = []
-
-        if current_entity and current_tokens:
-            entity_text = text[current_tokens[0][0]:current_tokens[-1][1]].strip()
-            entities[current_entity].append(entity_text)
-
-        return entities
 
     def identify_travel_order(
         self, text: str, coords: tuple[float, float] | None = None, model_key: str = "spacy"
@@ -176,8 +113,11 @@ class TravelService:
                     print("end time normalize")
                     datetime_iso = TimeNormalizer.normalize(ent.text)
         elif model_type == "transformers":
-            model, tokenizer = loaded
-            entities = self._predict_camembert(normalized, model, tokenizer)
+            results = loaded(normalized)
+            entities: dict[str, list[str]] = {"DEPARTURE": [], "DESTINATION": [], "TIME": []}
+            for ent in results:
+                if ent["entity_group"] in entities:
+                    entities[ent["entity_group"]].append(ent["word"])
             raw_departure = entities["DEPARTURE"][0] if entities["DEPARTURE"] else None
             raw_destination = entities["DESTINATION"][0] if entities["DESTINATION"] else None
             if entities["TIME"]:
